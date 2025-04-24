@@ -27,7 +27,7 @@ NOTION_API_TOKEN = os.getenv("NOTION_API_TOKEN")
 DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
 
 # Configuration
-MAX_TASKS_PER_DAY = 3  # Maximum number of templated tasks allowed per day
+MAX_TASKS_PER_DAY = 3  # Maximum number of Quick wins allowed per day
 
 # Log configuration details
 logger.info(f"Starting Notion Task Duplicator")
@@ -76,18 +76,18 @@ def get_database_schema():
 
 def get_templated_tasks():
     """
-    Fetch templated tasks with empty dates from the Notion database
+    Fetch Quick wins with empty dates from the Notion database
     """
     url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
     
-    # Query for tasks with "Task Type" = "Templated task" and empty Date
+    # Query for tasks with "Task Type" = "Quick win" and empty Date
     payload = {
         "filter": {
             "and": [
                 {
                     "property": "Task Type",
                     "select": {
-                        "equals": "Templated task"
+                        "equals": "Quick win"
                     }
                 },
                 {
@@ -100,7 +100,7 @@ def get_templated_tasks():
         }
     }
     
-    logger.info(f"Fetching templated tasks from database: {DATABASE_ID}")
+    logger.info(f"Fetching Quick wins from database: {DATABASE_ID}")
     
     try:
         response = requests.post(url, headers=headers, json=payload)
@@ -111,7 +111,7 @@ def get_templated_tasks():
             return []
         
         results = data.get("results", [])
-        logger.info(f"Successfully fetched {len(results)} templated tasks")
+        logger.info(f"Successfully fetched {len(results)} Quick wins")
         return results
     except Exception as e:
         logger.exception(f"Exception when fetching tasks: {str(e)}")
@@ -261,7 +261,7 @@ def create_task(properties, due_date, schema):
         },
         "Task Type": {
             "select": {
-                "name": "Templated task"
+                "name": "Quick win"
             }
         },
         "Date": {
@@ -355,10 +355,10 @@ def schedule_tasks():
     # Get all template tasks
     template_tasks = get_templated_tasks()
     if not template_tasks:
-        logger.warning("No templated tasks found. Nothing to schedule.")
+        logger.warning("No Quick wins found. Nothing to schedule.")
         return []
     
-    logger.info(f"Found {len(template_tasks)} templated tasks")
+    logger.info(f"Found {len(template_tasks)} Quick wins")
     
     created_tasks = []
     
